@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "978115865811",
+    "project_id": "react-native-14405",
+    "storage_bucket": "react-native-14405.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:978115865811:android:021f4740c853e7bbec3826",
+        "android_client_info": {
+          "package_name": "com.locallanguagemodal"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "978115865811-kmsg4bnh310kagc52snqrq38fesmc94d.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.locallanguagemodal",
+            "certificate_hash": "03bb44e239842804debd207bf12836d85b7722bf"
+          }
+        },
+        {
+          "client_id": "978115865811-1m2o145flbp2da3hf8du5kf4t43dt53a.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD7IGU22nuVdB4SUailGCzqCHuJxb_UsWI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "978115865811-1m2o145flbp2da3hf8du5kf4t43dt53a.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

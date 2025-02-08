@@ -1,4 +1,7 @@
-import React from 'react';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import React, { useEffect, useState } from 'react';
+import { Alert, ActivityIndicator } from 'react-native';
+import auth from '@react-native-firebase/auth'
 import {
   View,
   Text,
@@ -8,21 +11,70 @@ import {
   GestureResponderEvent,
 } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import { getApp } from '@react-native-firebase/app';
+
 interface FormProps {
   onLoginPress?: (event: GestureResponderEvent) => void;
   onForgotPasswordPress?: (event: GestureResponderEvent) => void;
   onSignUpPress?: (event: GestureResponderEvent) => void;
   onAppleLoginPress?: (event: GestureResponderEvent) => void;
-  onGoogleLoginPress?: (event: GestureResponderEvent) => void;
 }
 
-const Form: React.FC<FormProps> = ({
+const LoginScreen: React.FC<FormProps> = ({
   onLoginPress,
   onForgotPasswordPress,
   onSignUpPress,
   onAppleLoginPress,
-  onGoogleLoginPress,
 }) => {
+  const [isLoading, setIsLoading] = useState(false);
+
+  const onGoogleLoginPress = async () => {
+    try {
+      setIsLoading(true);
+      console.log('Checking Google Play Services...');
+      await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+
+      console.log('Signing in with Google...');
+      const userInfo = await GoogleSignin.signIn();
+      console.log('User Info:', userInfo);
+
+      const idToken = userInfo?.data?.idToken;
+      if (!idToken) {
+        throw new Error('Google Sign-In failed: idToken is missing.');
+      }
+
+      console.log('Generating Google credential...');
+      const app = getApp();
+      const googleCredential = auth.GoogleAuthProvider.credential(idToken);
+
+      console.log('Signing in with Firebase...');
+      const userCredential = await auth(app).signInWithCredential(googleCredential);
+      console.log('User signed in successfully:', userCredential);
+
+      return userCredential;
+    } catch (error:any) {
+      console.error('Google Sign-In Error:', error);
+      Alert.alert('Error', `Google Sign-In failed: ${error.message}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    GoogleSignin.configure({
+      webClientId: '978115865811-1m2o145flbp2da3hf8du5kf4t43dt53a.apps.googleusercontent.com', 
+    });
+  }, []);
+
+  if (isLoading) {
+    return (
+      <View style={[styles.container, styles.loaderContainer]}>
+        <ActivityIndicator size="large" color="teal" />
+        <Text style={styles.loaderText}>Signing in with Google...</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Welcome back</Text>
@@ -55,13 +107,18 @@ const Form: React.FC<FormProps> = ({
         </Text>
       </Text>
       <View style={styles.socialButtonsContainer}>
-        <TouchableOpacity style={styles.socialButton} onPress={onAppleLoginPress}>
+        {/* <TouchableOpacity style={styles.socialButton} onPress={onAppleLoginPress}>
           <FontAwesome name="apple" size={18} color="white" />
           <Text style={styles.socialButtonText}>Log in with Apple</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={[styles.socialButton, styles.googleButton]} onPress={onGoogleLoginPress}>
+        </TouchableOpacity> */}
+        <TouchableOpacity 
+          style={[styles.socialButton, styles.googleButton]} 
+          onPress={onGoogleLoginPress}
+        >
           <FontAwesome name="google" size={18} color="black" />
-          <Text style={[styles.socialButtonText, styles.googleButtonText]}>Log in with Google</Text>
+          <Text style={[styles.socialButtonText, styles.googleButtonText]}>
+            Log in with Google
+          </Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -70,16 +127,23 @@ const Form: React.FC<FormProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    width: 350,
     height: 500,
+    flex: 1,
+    justifyContent: 'center',
     backgroundColor: '#fff',
     borderRadius: 10,
     padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.35,
-    shadowRadius: 15,
     elevation: 10,
+  },
+  loaderContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loaderText: {
+    marginTop: 20,
+    color: 'teal',
+    fontSize: 16,
+    fontWeight: '600',
   },
   title: {
     textAlign: 'center',
@@ -88,8 +152,7 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
   form: {
-    flex: 1,
-    justifyContent: 'center',
+    marginVertical: 10,
   },
   input: {
     borderWidth: 1,
@@ -99,6 +162,7 @@ const styles = StyleSheet.create({
     marginBottom: 18,
   },
   pageLink: {
+    marginBottom: 10,
     textAlign: 'right',
     color: '#747474',
     textDecorationLine: 'underline',
@@ -160,4 +224,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Form;
+export default LoginScreen;
