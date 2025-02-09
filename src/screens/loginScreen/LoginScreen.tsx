@@ -59,7 +59,6 @@ const LoginScreen: React.FC<FormProps> = ({
       setIsLoading(false);
     }
   };
-
   useEffect(() => {
     GoogleSignin.configure({
       webClientId: '978115865811-1m2o145flbp2da3hf8du5kf4t43dt53a.apps.googleusercontent.com', 
@@ -74,7 +73,6 @@ const LoginScreen: React.FC<FormProps> = ({
       </View>
     );
   }
-
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Welcome back</Text>

@@ -191,15 +191,14 @@ const Main = () => {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}>
       <View style={styles.inputContainer}>
-      {/* <TextInput
+        <View style={styles.inputWrapper}>
+           {/* <TextInput
               style={styles.tokenInput}
               placeholder="Tokens"
               keyboardType="numeric"
               value={numTokens}
               onChangeText={setNumTokens}
             /> */}
-        <View style={styles.inputWrapper}>
-          
           <TextInput
             style={styles.input}
             placeholder="Type your message..."
@@ -253,11 +252,6 @@ messageContainer: {
   marginVertical: 8,
   padding: 12,
   borderRadius: 20,
-  // elevation: 1,
-  // shadowColor: '#000',
-  // shadowOffset: { width: 0, height: 1 },
-  // shadowOpacity: 0.1,
-  // shadowRadius: 1,
 },
 tokenInput: {
   width: 60,
