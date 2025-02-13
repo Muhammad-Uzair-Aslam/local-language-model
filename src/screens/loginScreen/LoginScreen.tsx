@@ -1,7 +1,8 @@
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import React, { useEffect, useState } from 'react';
 import { Alert, ActivityIndicator } from 'react-native';
-import auth from '@react-native-firebase/auth'
+import auth from '@react-native-firebase/auth';
+import DotLottieReact from 'lottie-react-native'
 import {
   View,
   Text,
@@ -12,6 +13,7 @@ import {
 } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { getApp } from '@react-native-firebase/app';
+import LottieView from 'lottie-react-native';
 
 interface FormProps {
   onLoginPress?: (event: GestureResponderEvent) => void;
@@ -68,7 +70,12 @@ const LoginScreen: React.FC<FormProps> = ({
   if (isLoading) {
     return (
       <View style={[styles.container, styles.loaderContainer]}>
-        <ActivityIndicator size="large" color="teal" />
+        <LottieView
+                source={require('../../assets/animation/lottie.json')} // Add your Lottie JSON file in the project
+                autoPlay
+                loop
+                style={styles.animation}
+              />
         <Text style={styles.loaderText}>Signing in with Google...</Text>
       </View>
     );
@@ -105,10 +112,7 @@ const LoginScreen: React.FC<FormProps> = ({
         </Text>
       </Text>
       <View style={styles.socialButtonsContainer}>
-        {/* <TouchableOpacity style={styles.socialButton} onPress={onAppleLoginPress}>
-          <FontAwesome name="apple" size={18} color="white" />
-          <Text style={styles.socialButtonText}>Log in with Apple</Text>
-        </TouchableOpacity> */}
+      
         <TouchableOpacity 
           style={[styles.socialButton, styles.googleButton]} 
           onPress={onGoogleLoginPress}
@@ -139,9 +143,13 @@ const styles = StyleSheet.create({
   },
   loaderText: {
     marginTop: 20,
-    color: 'teal',
+    color: 'blue',
     fontSize: 16,
     fontWeight: '600',
+  },
+  animation:{
+  width:200,
+  height:200
   },
   title: {
     textAlign: 'center',
@@ -223,3 +231,5 @@ const styles = StyleSheet.create({
 });
 
 export default LoginScreen;
+
+    
