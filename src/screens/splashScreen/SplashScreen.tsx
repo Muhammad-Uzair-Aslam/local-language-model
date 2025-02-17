@@ -5,14 +5,12 @@ import { Svg, Circle, Path } from 'react-native-svg';
 const { width, height } = Dimensions.get('window');
 
 const SplashScreen = () => {
-  // Animation values
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.9)).current;
   const textTranslateY = useRef(new Animated.Value(50)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const loadingDots = [...Array(3)].map(() => useRef(new Animated.Value(0)).current);
   
-  // Generate random bubble positions
   const bubbles = [...Array(20)].map(() => ({
     left: Math.random() * width,
     top: Math.random() * height,
@@ -22,7 +20,6 @@ const SplashScreen = () => {
   }));
 
   useEffect(() => {
-    // Pulse animation for logo shadow
     Animated.loop(
       Animated.sequence([
         Animated.timing(pulseAnim, {

@@ -1,34 +1,23 @@
 import React from 'react';
 import { View, TextInput, TouchableOpacity, Text, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
 import LottieView from 'lottie-react-native';
-interface ChatInputProps {
+export interface ChatInputProps {
   inputText: string;
-  numTokens: string;
   loading: boolean;
   onChangeText: (text: string) => void;
-  onChangeTokens: (tokens: string) => void;
   onSend: () => void;
 }
 
 export const ChatInput: React.FC<ChatInputProps> = ({
   inputText,
-  numTokens,
   loading,
   onChangeText,
-  onChangeTokens,
   onSend,
 }) => (
   <KeyboardAvoidingView
     behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}>
     <View style={styles.inputContainer}>
-      <TextInput
-        style={styles.tokenInput}
-        placeholder="Tokens"
-        keyboardType="numeric"
-        value={numTokens}
-        onChangeText={onChangeTokens}
-      />
       <View style={styles.inputWrapper}>
         <TextInput
           style={styles.input}
@@ -116,14 +105,6 @@ export const styles = StyleSheet.create({
     animation:{width:30,
         height:30
     },
-    tokenInput: {
-      paddingHorizontal: 12,
-      paddingVertical: 8,
-      borderWidth: 1,
-      borderColor: '#ddd',
-      padding: 10,
-      borderRadius: 20,
-    },
     userMessageContainer: {
       alignSelf: 'flex-end',
       backgroundColor: '#1a237e',
@@ -170,7 +151,7 @@ export const styles = StyleSheet.create({
       backgroundColor: '#F5F7FB',
       borderRadius: 25,
       paddingHorizontal: 16,
-      paddingVertical: 8,
+      paddingVertical: 2,
       marginRight: 12,
       borderWidth: 1,
       borderColor: '#E5E5E5',

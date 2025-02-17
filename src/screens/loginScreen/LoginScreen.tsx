@@ -1,8 +1,7 @@
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import React, { useEffect, useState } from 'react';
-import { Alert, ActivityIndicator } from 'react-native';
+import { Alert } from 'react-native';
 import auth from '@react-native-firebase/auth';
-import DotLottieReact from 'lottie-react-native'
 import {
   View,
   Text,

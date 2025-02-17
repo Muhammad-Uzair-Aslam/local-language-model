@@ -1,9 +1,10 @@
-import React, { useEffect } from 'react';
+import React, { useState,useEffect } from 'react';
 import {
   SafeAreaView,
   StatusBar,
   FlatList,
   StyleSheet,
+  
 } from 'react-native';
 import { useModel } from '../../hooks/useModel';
 import { useChat, Message } from '../../hooks/useChat';
@@ -11,9 +12,15 @@ import { MessageComponent } from '../../components/messageComponent/MessageCompo
 import { Header } from '../../components/header/Header';
 import { ChatInput } from '../../components/chatInput/ChatInput';
 import { LoadingScreen } from '../../components/loading/Loading';
-
+import SideMenu from '../../components/sideMenu/SideMenu';
+import SettingsScreen from '../settingsScreen/SettingsScreen';
+import { useNavigation } from '@react-navigation/native';
+import { RootStackParamList } from '../../types/types';
+import  { NativeStackNavigationProp } from '@react-navigation/native-stack';
+type navigationProp=NativeStackNavigationProp<RootStackParamList>;
 const Main = () => {
-  const { isDownloaded, isModelLoaded, progress, model } = useModel();
+  const [menuVisible, setMenuVisible] = useState(false);
+  const { isDownloaded, progress, model } = useModel();
   const {
     messages,
     inputText,
@@ -24,6 +31,13 @@ const Main = () => {
     updateNumTokens,
     flatListRef,
   } = useChat(model);
+const navigation=useNavigation<navigationProp>()
+  const handleNavigate = (screen: string) => {
+    if (screen === 'Settings') {
+      navigation.navigate('Setting'); 
+    }
+    console.log(`Navigating to ${SettingsScreen}`);
+  };
 
   useEffect(() => {
     if (messages.length > 0) {
@@ -42,7 +56,10 @@ const Main = () => {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#1a237e" />
-      <Header loading={loading} />
+      <Header 
+        loading={loading} 
+        onMenuPress={() => setMenuVisible(true)} 
+      />
       <FlatList
         ref={flatListRef}
         data={messages}
@@ -52,11 +69,16 @@ const Main = () => {
       />
       <ChatInput
         inputText={inputText}
-        numTokens={numTokens}
         loading={loading}
         onChangeText={updateInput}
-        onChangeTokens={updateNumTokens}
         onSend={sendMessage}
+      />
+      <SideMenu
+      onChangeTokens={updateNumTokens}
+      numTokens={numTokens}
+        visible={menuVisible}
+        onClose={() => setMenuVisible(false)}
+        onNavigate={handleNavigate}
       />
     </SafeAreaView>
   );

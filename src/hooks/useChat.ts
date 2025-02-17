@@ -14,7 +14,7 @@ interface ChatState {
   numTokens: string;
 }
 
-const stopWords = [
+const stopWords: string[] = [
   '</s>',
   '<|end|>',
   '<|eot_id|>',
@@ -29,6 +29,32 @@ const stopWords = [
   '<|END|>'
 ];
 
+const SYSTEM_PROMPT = `You are a highly capable AI assistant built on the DeepSeek model. You excel at providing accurate, well-reasoned responses in both English and Urdu. Follow these guidelines for every response:
+
+1. First analyze the query in <think> tags:
+   - Break down the question
+   - Consider relevant context and knowledge
+   - Plan your response approach
+   - Your thinking must be thorough and visible in every response
+
+2. Format your responses:
+   - Use clear, natural language
+   - Structure complex information with markdown
+   - For Urdu responses, ensure proper grammar and culturally appropriate language
+   - When using code, wrap it in \`\`\` code blocks
+   - Keep responses focused and accurate
+
+3. Quality standards:
+   - Provide complete, accurate information
+   - If unsure, acknowledge limitations
+   - Stay relevant to the query
+   - Be consistent in response quality regardless of language
+
+Remember: Every response must begin with a thinking process in <think> tags before providing the answer.
+
+Current conversation format:
+`;
+
 export const useChat = (model: LlamaContext | null) => {
   const [state, setState] = useState<ChatState>({
     messages: [],
@@ -39,7 +65,13 @@ export const useChat = (model: LlamaContext | null) => {
 
   const flatListRef = useRef<FlatList<Message>>(null);
 
-  const sendMessage = async () => {
+  const formatConversationHistory = (messages: Message[]): string => {
+    return messages.map(msg => 
+      `${msg.role === 'user' ? 'Human' : 'Assistant'}: ${msg.content}`
+    ).join('\n\n') + '\n\nAssistant:';
+  };
+
+  const sendMessage = async (): Promise<void> => {
     if (!model) {
       Alert.alert('Please wait', 'Model is still loading...');
       return;
@@ -51,7 +83,7 @@ export const useChat = (model: LlamaContext | null) => {
     }
 
     const userMessage: Message = { role: 'user', content: state.inputText };
-    setState(prev => ({
+    setState((prev: ChatState) => ({
       ...prev,
       messages: [...prev.messages, userMessage],
       inputText: '',
@@ -64,21 +96,20 @@ export const useChat = (model: LlamaContext | null) => {
       
       await model.completion(
         {
-          prompt:
-            'This is a conversation between user and llama, a friendly chatbot. Respond in simple markdown. First think about the every answer in <think></think> and then send response\n\nUser: Hello!\nLlama:',
+          prompt: SYSTEM_PROMPT + formatConversationHistory(conversation),
           messages: conversation,
           n_predict: parseInt(state.numTokens) || 2000,
           temperature: 0.7,
           stop: stopWords,
         },
-        data => {
+        (data: { token: string }) => {
           responseContent += data.token;
-          setState(prev => {
+          setState((prev: ChatState) => {
             const lastIndex = prev.messages.length - 1;
             if (prev.messages[lastIndex]?.role === 'system') {
               return {
                 ...prev,
-                messages: prev.messages.map((msg, index) =>
+                messages: prev.messages.map((msg: Message, index: number) =>
                   index === lastIndex
                     ? { ...msg, content: responseContent }
                     : msg,
@@ -96,16 +127,16 @@ export const useChat = (model: LlamaContext | null) => {
       console.error('Error streaming response:', error);
       Alert.alert('Error', 'Failed to get response');
     } finally {
-      setState(prev => ({ ...prev, loading: false }));
+      setState((prev: ChatState) => ({ ...prev, loading: false }));
     }
   };
 
-  const updateInput = (text: string) => {
-    setState(prev => ({ ...prev, inputText: text }));
+  const updateInput = (text: string): void => {
+    setState((prev: ChatState) => ({ ...prev, inputText: text }));
   };
 
-  const updateNumTokens = (tokens: string) => {
-    setState(prev => ({ ...prev, numTokens: tokens }));
+  const updateNumTokens = (tokens: string): void => {
+    setState((prev: ChatState) => ({ ...prev, numTokens: tokens }));
   };
 
   return {

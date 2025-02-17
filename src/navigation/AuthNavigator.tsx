@@ -1,8 +1,9 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import LoginScreen from '../screens/loginScreen/LoginScreen';
+import { RootStackParamList } from '../types/types';
 
-const AuthStack = createNativeStackNavigator();
+const AuthStack = createNativeStackNavigator<RootStackParamList>();
 
 const AuthNavigator = () => {
   return (
@@ -10,7 +11,7 @@ const AuthNavigator = () => {
       <AuthStack.Screen 
         name="Login" 
         component={LoginScreen}  
-        options={{headerShown:false}}
+        options={{headerShown: false}}
       />
     </AuthStack.Navigator>
   );
