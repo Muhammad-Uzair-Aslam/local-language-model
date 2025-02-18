@@ -1,93 +1,77 @@
-import React, { useState } from 'react';
-import {
-  DrawerContentScrollView,
-  DrawerContentComponentProps,
-} from '@react-navigation/drawer';
-import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
-import auth from '@react-native-firebase/auth';
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import React from 'react';
+import { createDrawerNavigator } from '@react-navigation/drawer';
+import { Text, View, StyleSheet } from 'react-native';
+import HomeScreen from '../screens/homeScreen/HomeScreen';
+import CustomDrawerContent from '../components/customDrawerContext/CustomDrawerContext';
 
-const CustomDrawer = ({ navigation }: DrawerContentComponentProps) => {
-  const handleLogout = async () => {
-    try {
-      await GoogleSignin.signOut();
-      await auth().signOut();
-    } catch (error) {
-      console.error('Logout error:', error);
-    }
-  };
+const Drawer = createDrawerNavigator();
 
+// Placeholder screens for drawer items
+const SettingsScreen = () => (
+  <View style={styles.screenContainer}>
+    <Text style={styles.screenText}>Settings Screen</Text>
+  </View>
+);
+
+const ProfileScreen = () => (
+  <View style={styles.screenContainer}>
+    <Text style={styles.screenText}>Profile Screen</Text>
+  </View>
+);
+
+const AboutScreen = () => (
+  <View style={styles.screenContainer}>
+    <Text style={styles.screenText}>About Screen</Text>
+  </View>
+);
+
+const DrawerNavigator = () => {
   return (
-    <DrawerContentScrollView>
-      <View style={styles.container}>
-        <TouchableOpacity
-          style={styles.closeButton}
-          onPress={() => navigation.closeDrawer()}>
-          <Icon name="close" size={24} color="#000" />
-        </TouchableOpacity>
-        
-        <View style={styles.menuContainer}>
-          <TouchableOpacity
-            style={styles.menuItem}
-            onPress={() => navigation.navigate('Home')}>
-            <Text style={styles.menuText}>Home</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.menuItem}
-            onPress={() => navigation.navigate('Donate')}>
-            <Text style={styles.menuText}>Donate</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.menuItem}
-            onPress={() => navigation.navigate('MyDonation')}>
-            <Text style={styles.menuText}>My Donations</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.menuItem}
-            onPress={() => navigation.navigate('PasswordUpdate')}>
-            <Text style={styles.menuText}>Password Update</Text>
-          </TouchableOpacity>
-        </View>
-
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <Text style={styles.logoutText}>Log Out</Text>
-        </TouchableOpacity>
-      </View>
-    </DrawerContentScrollView>
+    <Drawer.Navigator
+      drawerContent={props => <CustomDrawerContent {...props} />}
+      screenOptions={{
+        headerStyle: {
+          backgroundColor: '#1a237e',
+        },
+        headerTintColor: '#fff',
+        headerTitleStyle: {
+          fontWeight: 'bold',
+        },
+        drawerActiveBackgroundColor: '#1a237e',
+        drawerActiveTintColor: '#fff',
+        drawerInactiveTintColor: '#333',
+      }}>
+      <Drawer.Screen 
+        name="AI Assistant" 
+        component={HomeScreen}
+      />
+      <Drawer.Screen 
+        name="Profile" 
+        component={ProfileScreen}
+      />
+      <Drawer.Screen 
+        name="Settings" 
+        component={SettingsScreen}
+      />
+      <Drawer.Screen 
+        name="About" 
+        component={AboutScreen}
+      />
+    </Drawer.Navigator>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  screenContainer: {
     flex: 1,
-    paddingVertical: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  closeButton: {
-    alignSelf: 'flex-start',
-    padding: 10,
-  },
-  menuContainer: {
-    flex: 1,
-    paddingTop: 20,
-  },
-  menuItem: {
-    paddingVertical: 15,
-    paddingHorizontal: 20,
-  },
-  menuText: {
-    fontSize: 16,
-  },
-  logoutButton: {
-    marginTop: 20,
-    paddingVertical: 15,
-    paddingHorizontal: 20,
-  },
-  logoutText: {
-    color: 'red',
-    fontSize: 16,
+  screenText: {
+    fontSize: 24,
     fontWeight: 'bold',
+    color: '#1a237e',
   },
 });
 
-export default CustomDrawer;
+export default DrawerNavigator;

@@ -1,18 +1,13 @@
 import React from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  Image,
-  TouchableOpacity,
-} from 'react-native';
-import {
   DrawerContentScrollView,
   DrawerItemList,
+  DrawerItem,
 } from '@react-navigation/drawer';
+import { View, Text, StyleSheet } from 'react-native';
 import auth from '@react-native-firebase/auth';
 
-const CustomDrawer = (props: any) => {
+const CustomDrawerContent = (props: any) => {
   const handleLogout = async () => {
     try {
       await auth().signOut();
@@ -22,56 +17,43 @@ const CustomDrawer = (props: any) => {
   };
 
   return (
-    <View style={styles.container}>
-      <DrawerContentScrollView {...props}>
-        <View style={styles.headerContainer}>
-          <View style={styles.userInfoContainer}>
-            <Text style={styles.userName}>
-              {auth().currentUser?.email || 'User'}
-            </Text>
-          </View>
-        </View>
-        <View style={styles.drawerListWrapper}>
-          <DrawerItemList {...props} />
-        </View>
-      </DrawerContentScrollView>
-      <TouchableOpacity
-        style={styles.logoutButton}
-        onPress={handleLogout}>
-        <Text style={styles.logoutText}>Logout</Text>
-      </TouchableOpacity>
-    </View>
+    <DrawerContentScrollView {...props}>
+      <View style={styles.drawerHeader}>
+        <Text style={styles.drawerHeaderText}>AI Assistant</Text>
+        <Text style={styles.drawerSubText}>
+          {auth().currentUser?.email || 'Guest User'}
+        </Text>
+      </View>
+      <DrawerItemList {...props} />
+      <DrawerItem
+        label="Logout"
+        onPress={handleLogout}
+        labelStyle={styles.logoutText}
+      />
+    </DrawerContentScrollView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  headerContainer: {
+  drawerHeader: {
     padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
+    backgroundColor: '#1a237e',
+    marginBottom: 10,
   },
-  userInfoContainer: {
-    marginLeft: 10,
-  },
-  userName: {
-    fontSize: 18,
+  drawerHeaderText: {
+    fontSize: 20,
     fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: 5,
   },
-  drawerListWrapper: {
-    marginTop: 10,
-  },
-  logoutButton: {
-    padding: 20,
-    borderTopWidth: 1,
-    borderTopColor: '#ccc',
+  drawerSubText: {
+    fontSize: 14,
+    color: '#fff',
+    opacity: 0.8,
   },
   logoutText: {
-    fontSize: 16,
-    color: 'red',
+    color: '#D32F2F',
   },
 });
 
-export default CustomDrawer;
+export default CustomDrawerContent;

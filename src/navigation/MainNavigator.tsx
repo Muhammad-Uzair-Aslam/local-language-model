@@ -4,13 +4,13 @@ import { getApp } from '@react-native-firebase/app';
 import auth from '@react-native-firebase/auth';
 import AuthNavigator from './AuthNavigator';
 import AppNavigator from './AppNavigator';
-import SplashScreen from '../screens/splashScreen/SplashScreen'; // Import SplashScreen
+import SplashScreen from '../screens/splashScreen/SplashScreen';
 import { FirebaseAuthTypes } from '@react-native-firebase/auth';
 
 const MainNavigator = () => {
   const [initializing, setInitializing] = useState(true);
   const [user, setUser] = useState<FirebaseAuthTypes.User | null>(null);
-  const [isSplashVisible, setIsSplashVisible] = useState(true); // State for Splash Screen
+  const [isSplashVisible, setIsSplashVisible] = useState(true);
 
   useEffect(() => {
     const app = getApp();
@@ -24,10 +24,10 @@ const MainNavigator = () => {
     });
 
     return () => {
-      clearTimeout(splashTimer); 
+      clearTimeout(splashTimer);
       subscriber();
     };
-  }, []);
+  }, [initializing]);
 
   if (isSplashVisible) {
     return <SplashScreen />;
