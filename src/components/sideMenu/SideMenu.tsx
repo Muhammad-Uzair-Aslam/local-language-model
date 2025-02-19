@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -12,7 +12,6 @@ import {
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
-
 interface SideMenuProps {
   visible: boolean;
   onClose: () => void;
@@ -20,8 +19,13 @@ interface SideMenuProps {
   onChangeTokens: (tokens: string) => void;
   numTokens: string;
 }
-
-const SideMenu: React.FC<SideMenuProps> = ({ visible, onClose, onNavigate,onChangeTokens,numTokens }) => {
+const SideMenu: React.FC<SideMenuProps> = ({
+  visible,
+  onClose,
+  onNavigate,
+  onChangeTokens,
+  numTokens,
+}) => {
   const translateX = React.useRef(new Animated.Value(-SCREEN_WIDTH)).current;
   const [isSettingsExpanded, setIsSettingsExpanded] = useState(false);
   const [settingsValue, setSettingsValue] = useState('');
@@ -33,7 +37,6 @@ const SideMenu: React.FC<SideMenuProps> = ({ visible, onClose, onNavigate,onChan
       useNativeDriver: true,
     }).start();
   }, [visible]);
-
   const handleMenuItemPress = (itemName: string) => {
     if (itemName === 'Settings') {
       setIsSettingsExpanded(!isSettingsExpanded);
@@ -42,71 +45,64 @@ const SideMenu: React.FC<SideMenuProps> = ({ visible, onClose, onNavigate,onChan
       onClose();
     }
   };
-
   const menuItems = [
-    { name: 'Home', icon: 'home-outline' },
-    { name: 'Settings', icon: 'settings-outline' },
-    { name: 'Profile', icon: 'person-outline' },
-    { name: 'About', icon: 'information-circle-outline' },
+    {name: 'Home', icon: 'home-outline'},
+    {name: 'Settings', icon: 'settings-outline'},
+    {name: 'Profile', icon: 'person-outline'},
+    {name: 'About', icon: 'information-circle-outline'},
   ];
-
   return (
     <Modal
       visible={visible}
       transparent
       animationType="none"
-      onRequestClose={onClose}
-    >
+      onRequestClose={onClose}>
       <View style={styles.overlay}>
         <Animated.View
-          style={[
-            styles.menuContainer,
-            { transform: [{ translateX }] }
-          ]}
-        >
+          style={[styles.menuContainer, {transform: [{translateX}]}]}>
           <View style={styles.header}>
             <Text style={styles.headerText}>Menu</Text>
           </View>
-          
-          {menuItems.map((item) => (
+
+          {menuItems.map(item => (
             <View key={item.name}>
               <TouchableOpacity
                 style={[
                   styles.menuItem,
-                  item.name === 'Settings' && isSettingsExpanded && styles.activeMenuItem
+                  item.name === 'Settings' &&
+                    isSettingsExpanded &&
+                    styles.activeMenuItem,
                 ]}
-                onPress={() => handleMenuItemPress(item.name)}
-              >
+                onPress={() => handleMenuItemPress(item.name)}>
                 <Ionicons name={item.icon} size={24} color="#333" />
                 <Text style={styles.menuText}>{item.name}</Text>
                 {item.name === 'Settings' && (
-                  <Ionicons 
-                    name={isSettingsExpanded ? 'chevron-up' : 'chevron-down'} 
-                    size={20} 
+                  <Ionicons
+                    name={isSettingsExpanded ? 'chevron-up' : 'chevron-down'}
+                    size={20}
                     color="#333"
                     style={styles.chevron}
                   />
                 )}
               </TouchableOpacity>
-              
+
               {item.name === 'Settings' && isSettingsExpanded && (
                 <View style={styles.settingsInputContainer}>
-                    <Text style={styles.token}>Set Token For Response</Text>
+                  <Text style={styles.token}>Set Token For Response</Text>
                   <TextInput
-                          style={styles.tokenInput}
-                          placeholder="Tokens"
-                          keyboardType="numeric"
-                          value={numTokens}
-                          onChangeText={onChangeTokens}
-                        />
-                  <TouchableOpacity 
+                    style={styles.tokenInput}
+                    placeholder="Tokens"
+                    keyboardType="numeric"
+                    value={numTokens}
+                    onChangeText={onChangeTokens}
+                  />
+                  <TouchableOpacity
                     style={styles.saveButton}
                     onPress={() => {
                       // Handle saving settings here
                       console.log('Saving setting:', settingsValue);
                       setIsSettingsExpanded(false);
-                    }}
-                  >
+                    }}>
                     <Text style={styles.saveButtonText}>Save</Text>
                   </TouchableOpacity>
                 </View>
@@ -114,8 +110,8 @@ const SideMenu: React.FC<SideMenuProps> = ({ visible, onClose, onNavigate,onChan
             </View>
           ))}
         </Animated.View>
-        <TouchableOpacity 
-          style={styles.overlayButton} 
+        <TouchableOpacity
+          style={styles.overlayButton}
           onPress={onClose}
           activeOpacity={1}
         />
@@ -148,10 +144,10 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
   },
-  token:{
-    fontWeight:'500',
-    marginBottom:10,
-    color:'gray'
+  token: {
+    fontWeight: '500',
+    marginBottom: 10,
+    color: 'gray',
   },
   tokenInput: {
     paddingHorizontal: 12,
@@ -198,8 +194,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#1a237e',
     padding: 10,
     borderRadius: 25,
-    paddingVertical:12,
-    marginVertical:10,
+    paddingVertical: 12,
+    marginVertical: 10,
     alignItems: 'center',
   },
   saveButtonText: {
