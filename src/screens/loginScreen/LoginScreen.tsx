@@ -13,6 +13,7 @@ import {
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { getApp } from '@react-native-firebase/app';
 import LottieView from 'lottie-react-native';
+import { useUser } from '../../context/UserContext';
 
 interface FormProps {
   onLoginPress?: (event: GestureResponderEvent) => void;
@@ -28,6 +29,8 @@ const LoginScreen: React.FC<FormProps> = ({
   onAppleLoginPress,
 }) => {
   const [isLoading, setIsLoading] = useState(false);
+  const { setUserInfo } = useUser(); // Add this line to use the context
+
 
   const onGoogleLoginPress = async () => {
     try {
@@ -51,7 +54,13 @@ const LoginScreen: React.FC<FormProps> = ({
       console.log('Signing in with Firebase...');
       const userCredential = await auth(app).signInWithCredential(googleCredential);
       console.log('User signed in successfully:', userCredential);
-
+      const user = userCredential.user;
+      setUserInfo({
+        displayName: user.displayName,
+        email: user.email,
+        photoURL: user.photoURL,
+        uid: user.uid
+      });
       return userCredential;
     } catch (error:any) {
       console.error('Google Sign-In Error:', error);

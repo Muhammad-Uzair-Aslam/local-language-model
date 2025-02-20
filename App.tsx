@@ -1,14 +1,18 @@
-import 'react-native-reanimated'
 import React from 'react';
-import {SafeAreaView} from 'react-native';
+import { View } from 'react-native';
 import MainNavigator from './src/navigation/MainNavigator';
+import { UserProvider } from './src/context/UserContext';
 
-function App(): React.JSX.Element {
+const App = () => {
   return (
-    <SafeAreaView style={{flex: 1}}>
-      <MainNavigator/>
-    </SafeAreaView>
+    <View style={{ flex: 1 }}>
+      <UserProvider>
+          <MainNavigator />
+      </UserProvider>
+    </View>
+    
   );
-}
+
+};
 
 export default App;

@@ -8,10 +8,18 @@ import {
   Animated,
   Dimensions,
   TextInput,
+  Image,
+  Alert,
 } from 'react-native';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
+
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { useUser } from '../../context/UserContext';
+import  { getAuth, signOut } from '@react-native-firebase/auth'; // Import Firebase Auth
+import { getApp } from '@react-native-firebase/app';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
+
 interface SideMenuProps {
   visible: boolean;
   onClose: () => void;
@@ -19,16 +27,18 @@ interface SideMenuProps {
   onChangeTokens: (tokens: string) => void;
   numTokens: string;
 }
+
 const SideMenu: React.FC<SideMenuProps> = ({
-  visible,
-  onClose,
-  onNavigate,
-  onChangeTokens,
-  numTokens,
-}) => {
-  const translateX = React.useRef(new Animated.Value(-SCREEN_WIDTH)).current;
-  const [isSettingsExpanded, setIsSettingsExpanded] = useState(false);
-  const [settingsValue, setSettingsValue] = useState('');
+    visible,
+    onClose,
+    onNavigate,
+    onChangeTokens,
+    numTokens,
+  }) => {
+    const translateX = React.useRef(new Animated.Value(-SCREEN_WIDTH)).current;
+    const [isSettingsExpanded, setIsSettingsExpanded] = useState(false);
+    const [settingsValue, setSettingsValue] = useState('');
+    const { userInfo, setUserInfo,logout } = useUser(); // Assuming setUserInfo is available
 
   useEffect(() => {
     Animated.timing(translateX, {
@@ -37,20 +47,75 @@ const SideMenu: React.FC<SideMenuProps> = ({
       useNativeDriver: true,
     }).start();
   }, [visible]);
+
   const handleMenuItemPress = (itemName: string) => {
     if (itemName === 'Settings') {
       setIsSettingsExpanded(!isSettingsExpanded);
+    } else if (itemName === 'Logout') {
+      handleLogout();
     } else {
       onNavigate(itemName);
       onClose();
     }
   };
+
+  const handleLogout = async () => {
+    const app = getApp();
+  const auth = getAuth(app);
+    Alert.alert(
+      'Logout',
+      'Are you sure you want to logout?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Logout', onPress: async () => {
+            try {
+                await signOut(auth);
+                logout(); // From useUser context
+                GoogleSignin.signOut()
+                onClose(); // Close SideMenu// Close the menu
+            } catch (error) {
+              console.error('Logout Error:', error);
+            }
+          }
+        },
+      ],
+      { cancelable: true }
+    );
+  };
+
   const menuItems = [
     {name: 'Home', icon: 'home-outline'},
     {name: 'Settings', icon: 'settings-outline'},
     {name: 'Profile', icon: 'person-outline'},
     {name: 'About', icon: 'information-circle-outline'},
+    {name: 'Logout', icon: 'log-out-outline'}, // Added Logout
   ];
+
+  const RenderUserProfile = () => {
+    if (!userInfo) {
+      return (
+        <View style={styles.profileContainer}>
+          <Text style={styles.welcomeText}>Welcome, Guest!</Text>
+        </View>
+      );
+    }
+
+    return (
+      <View style={styles.profileContainer}>
+        {userInfo.photoURL && (
+          <Image
+            source={{ uri: userInfo.photoURL }}
+            style={styles.profileImage}
+          />
+        )}
+        <Text style={styles.welcomeText}>
+          Welcome, {userInfo.displayName || 'User'}!
+        </Text>
+        <Text style={styles.emailText}>{userInfo.email}</Text>
+      </View>
+    );
+  };
+
   return (
     <Modal
       visible={visible}
@@ -63,6 +128,8 @@ const SideMenu: React.FC<SideMenuProps> = ({
           <View style={styles.header}>
             <Text style={styles.headerText}>Menu</Text>
           </View>
+
+          <RenderUserProfile />
 
           {menuItems.map(item => (
             <View key={item.name}>
@@ -99,7 +166,6 @@ const SideMenu: React.FC<SideMenuProps> = ({
                   <TouchableOpacity
                     style={styles.saveButton}
                     onPress={() => {
-                      // Handle saving settings here
                       console.log('Saving setting:', settingsValue);
                       setIsSettingsExpanded(false);
                     }}>
@@ -113,8 +179,9 @@ const SideMenu: React.FC<SideMenuProps> = ({
         <TouchableOpacity
           style={styles.overlayButton}
           onPress={onClose}
-          activeOpacity={1}
-        />
+          activeOpacity={1}>
+          <Text style={{ display: 'none' }}></Text>
+        </TouchableOpacity>
       </View>
     </Modal>
   );
@@ -144,6 +211,26 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
   },
+  profileContainer: {
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  profileImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    marginBottom: 15,
+  },
+  welcomeText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 5,
+  },
+  emailText: {
+    fontSize: 16,
+    color: '#666',
+  },
   token: {
     fontWeight: '500',
     marginBottom: 10,
@@ -154,7 +241,6 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderWidth: 1,
     borderColor: '#ddd',
-    padding: 10,
     borderRadius: 20,
   },
   menuItem: {
@@ -181,14 +267,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
     borderBottomColor: '#E0E0E0',
-  },
-  settingsInput: {
-    backgroundColor: '#F5F7FB',
-    borderRadius: 8,
-    padding: 10,
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
   },
   saveButton: {
     backgroundColor: '#1a237e',
