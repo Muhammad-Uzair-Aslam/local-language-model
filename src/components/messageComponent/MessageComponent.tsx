@@ -1,3 +1,199 @@
+// import React, { useState, useEffect } from 'react';
+// import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+// import Clipboard from '@react-native-clipboard/clipboard';
+// import { Message } from '../../hooks/useChat';
+
+// interface MessageComponentProps {
+//   message: Message;
+//   role: 'user' | 'system';
+// }
+
+// interface ParsedMessage {
+//   thinking: string;
+//   mainContent: string;
+//   codeBlocks: CodeBlock[];
+// }
+
+// interface CodeBlock {
+//   language: string;
+//   content: string;
+// }
+
+// export const MessageComponent: React.FC<MessageComponentProps> = ({ message, role }) => {
+//   const [isThinkingVisible, setIsThinkingVisible] = useState(true);
+//   const [parsedContent, setParsedContent] = useState<ParsedMessage>({ 
+//     thinking: '', 
+//     mainContent: '', 
+//     codeBlocks: [] 
+//   });
+  
+//   useEffect(() => {
+//     setParsedContent(parseMessage(message.content));
+//   }, [message.content]);
+
+//   const copyToClipboard = async (text: string) => {
+//     const parsed = parseMessage(text);
+//     // Reconstruct the content without thinking part
+//     let contentToCopy = parsed.mainContent;
+    
+//     // Add code blocks back in their original format
+//     parsed.codeBlocks.forEach((block, index) => {
+//       // Find the position to insert the code block
+//       const parts = parsed.mainContent.split(/```.*?\n[\s\S]*?```/g);
+//       const position = parts.slice(0, index + 1).join('').length;
+      
+//       // Insert the code block at the correct position
+//       contentToCopy = [
+//         contentToCopy.slice(0, position),
+//         `\n\`\`\`${block.language}\n${block.content}\n\`\`\`\n`,
+//         contentToCopy.slice(position)
+//       ].join('');
+//     });
+    
+//     await Clipboard.setString(contentToCopy.trim());
+//   };
+
+//   const parseMessage = (content: string): ParsedMessage => {
+//     if (content.startsWith('<think>')) {
+//       content = content.replace('<think>', '');
+//       const parts = content.split('</think>');
+      
+//       if (parts.length > 1) {
+//         return {
+//           thinking: parts[0].trim(),
+//           mainContent: parts[1].trim()
+//             .replace(/<\|end[_\s]of[_\s]sentence\|>/gi, '')
+//             .replace(/<｜end▁of▁sentence｜>/g, '')
+//             .trim(),
+//           codeBlocks: parseCodeBlocks(parts[1].trim())
+//         };
+//       } else {
+//         return {
+//           thinking: content
+//             .replace(/<\|end[_\s]of[_\s]sentence\|>/gi, '')
+//             .replace(/<｜end▁of▁sentence｜>/g, '')
+//             .trim(),
+//           mainContent: '',
+//           codeBlocks: []
+//         };
+//       }
+//     }
+    
+//     const mainContent = content
+//       .replace(/<\|end[_\s]of[_\s]sentence\|>/gi, '')
+//       .replace(/<｜end▁of▁sentence｜>/g, '')
+//       .trim();
+    
+//     return {
+//       thinking: '',
+//       mainContent,
+//       codeBlocks: parseCodeBlocks(mainContent)
+//     };
+//   };
+
+//   const parseCodeBlocks = (content: string): CodeBlock[] => {
+//     const codeBlocks: CodeBlock[] = [];
+//     const codeBlockRegex = /```(\w*)\n([\s\S]*?)```/g;
+//     let match;
+
+//     while ((match = codeBlockRegex.exec(content)) !== null) {
+//       codeBlocks.push({
+//         language: match[1] || 'plaintext',
+//         content: match[2].trim()
+//       });
+//     }
+
+//     return codeBlocks;
+//   };
+
+//   // Rest of the component remains the same...
+//   const { thinking, mainContent, codeBlocks } = parsedContent;
+
+//   const renderContent = () => {
+//     const parts = mainContent.split(/```.*?\n[\s\S]*?```/g);
+//     const result = [];
+    
+//     for (let i = 0; i < parts.length; i++) {
+//       if (parts[i].trim()) {
+//         result.push(
+//           <Text
+//             key={`text-${i}`}
+//             selectable={true}
+//             style={[
+//               styles.messageText,
+//               role === 'user' ? styles.userMessageText : styles.botMessageText,
+//             ]}>
+//             {parts[i].trim()}
+//           </Text>
+//         );
+//       }
+//       if (codeBlocks[i]) {
+//         result.push(
+//           <View key={`code-${i}`} style={styles.codeBlockContainer}>
+//             <View style={styles.codeBlockHeader}>
+//               <Text style={styles.languageText}>{codeBlocks[i].language}</Text>
+//               <TouchableOpacity 
+//                 onPress={() => copyToClipboard(codeBlocks[i].content)}
+//                 style={styles.copyButton}>
+//                 <Text style={styles.copyButtonText}>Copy</Text>
+//               </TouchableOpacity>
+//             </View>
+//             <View style={styles.codeBlock}>
+//               <Text selectable={true} style={styles.codeText}>
+//                 {codeBlocks[i].content}
+//               </Text>
+//             </View>
+//           </View>
+//         );
+//       }
+//     }
+//     return result;
+//   };
+
+//   return (
+//     <View
+//       style={[
+//         styles.messageContainer,
+//         role === 'user' ? styles.userMessageContainer : styles.botMessageContainer,
+//       ]}>
+//       <TouchableOpacity 
+//         style={styles.messageTouchable}
+//         onLongPress={() => copyToClipboard(message.content)}>
+//         {thinking && (
+//           <>
+//             <TouchableOpacity
+//               onPress={() => setIsThinkingVisible(!isThinkingVisible)}
+//               style={styles.thinkingHeader}>
+//               <Text selectable={true} style={styles.thinkingHeaderText}>
+//                 {isThinkingVisible ? '▼' : '▶'} Thinking Process
+//               </Text>
+//             </TouchableOpacity>
+//             {isThinkingVisible && (
+//               <View style={styles.thinkingContainer}>
+//                 <Text 
+//                   selectable={true} 
+//                   style={[
+//                     styles.messageText, 
+//                     styles.thinkingText,
+//                     role === 'user' ? styles.userThinkingText : styles.botThinkingText
+//                   ]}>
+//                   {thinking}
+//                 </Text>
+//               </View>
+//             )}
+//           </>
+//         )}
+//         {renderContent()}
+//       </TouchableOpacity>
+//       <Text style={[styles.timeText, role === 'user' ? styles.userTimeText : styles.botTimeText]}>
+//         {new Date().toLocaleTimeString([], {
+//           hour: '2-digit',
+//           minute: '2-digit',
+//         })}
+//       </Text>
+//     </View>
+//   );
+// };
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
@@ -11,32 +207,35 @@ interface MessageComponentProps {
 interface ParsedMessage {
   thinking: string;
   mainContent: string;
+  codeBlocks: CodeBlock[];
+}
+
+interface CodeBlock {
+  language: string;
+  content: string;
 }
 
 export const MessageComponent: React.FC<MessageComponentProps> = ({ message, role }) => {
   const [isThinkingVisible, setIsThinkingVisible] = useState(true);
-  const [parsedContent, setParsedContent] = useState<ParsedMessage>({ thinking: '', mainContent: '' });
+  const [parsedContent, setParsedContent] = useState<ParsedMessage>({ 
+    thinking: '', 
+    mainContent: '', 
+    codeBlocks: [] 
+  });
   
   useEffect(() => {
     setParsedContent(parseMessage(message.content));
   }, [message.content]);
 
   const copyToClipboard = async (text: string) => {
-    const { thinking, mainContent } = parseMessage(text);
-    const cleanContent = mainContent
-      .replace(/😊<\|end[_\s]of[_\s]sentence\|>/gi, '')
-      .replace(/😊<｜end▁of▁sentence｜>/g, '')
-      .trim();
-    await Clipboard.setString(cleanContent);
+    await Clipboard.setString(text);
   };
 
   const parseMessage = (content: string): ParsedMessage => {
-    // Check if content starts with <think>
     if (content.startsWith('<think>')) {
-      // Remove just the opening <think> tag
+      // Remove just the opening tag
       content = content.replace('<think>', '');
-      
-      // Split content at </think> if it exists
+      // Split content at closing tag if it exists
       const parts = content.split('</think>');
       
       if (parts.length > 1) {
@@ -46,7 +245,8 @@ export const MessageComponent: React.FC<MessageComponentProps> = ({ message, rol
           mainContent: parts[1].trim()
             .replace(/<\|end[_\s]of[_\s]sentence\|>/gi, '')
             .replace(/<｜end▁of▁sentence｜>/g, '')
-            .trim()
+            .trim(),
+          codeBlocks: parseCodeBlocks(parts[1].trim())
         };
       } else {
         // If no closing tag, treat everything as thinking
@@ -55,22 +255,82 @@ export const MessageComponent: React.FC<MessageComponentProps> = ({ message, rol
             .replace(/<\|end[_\s]of[_\s]sentence\|>/gi, '')
             .replace(/<｜end▁of▁sentence｜>/g, '')
             .trim(),
-          mainContent: ''
+          mainContent: '',
+          codeBlocks: []
         };
       }
     }
     
-    // If no <think> tag at start, everything is main content
+    // If no think tag at start, everything is main content
+    const mainContent = content
+      .replace(/<\|end[_\s]of[_\s]sentence\|>/gi, '')
+      .replace(/<｜end▁of▁sentence｜>/g, '')
+      .trim();
+    
     return {
       thinking: '',
-      mainContent: content
-        .replace(/<\|end[_\s]of[_\s]sentence\|>/gi, '')
-        .replace(/<｜end▁of▁sentence｜>/g, '')
-        .trim()
+      mainContent,
+      codeBlocks: parseCodeBlocks(mainContent)
     };
   };
 
-  const { thinking, mainContent } = parsedContent;
+  const parseCodeBlocks = (content: string): CodeBlock[] => {
+    const codeBlocks: CodeBlock[] = [];
+    const codeBlockRegex = /```(\w*)\n([\s\S]*?)```/g;
+    let match;
+
+    while ((match = codeBlockRegex.exec(content)) !== null) {
+      codeBlocks.push({
+        language: match[1] || 'plaintext',
+        content: match[2].trim()
+      });
+    }
+
+    return codeBlocks;
+  };
+
+  const { thinking, mainContent, codeBlocks } = parsedContent;
+
+  const renderContent = () => {
+    const parts = mainContent.split(/```.*?\n[\s\S]*?```/g);
+    const result = [];
+    
+    for (let i = 0; i < parts.length; i++) {
+      if (parts[i].trim()) {
+        result.push(
+          <Text
+            key={`text-${i}`}
+            selectable={true}
+            style={[
+              styles.messageText,
+              role === 'user' ? styles.userMessageText : styles.botMessageText,
+            ]}>
+            {parts[i].trim()}
+          </Text>
+        );
+      }
+      if (codeBlocks[i]) {
+        result.push(
+          <View key={`code-${i}`} style={styles.codeBlockContainer}>
+            <View style={styles.codeBlockHeader}>
+              <Text style={styles.languageText}>{codeBlocks[i].language}</Text>
+              <TouchableOpacity 
+                onPress={() => copyToClipboard(codeBlocks[i].content)}
+                style={styles.copyButton}>
+                <Text style={styles.copyButtonText}>Copy</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={styles.codeBlock}>
+              <Text selectable={true} style={styles.codeText}>
+                {codeBlocks[i].content}
+              </Text>
+            </View>
+          </View>
+        );
+      }
+    }
+    return result;
+  };
 
   return (
     <View
@@ -105,16 +365,7 @@ export const MessageComponent: React.FC<MessageComponentProps> = ({ message, rol
             )}
           </>
         )}
-        {mainContent && (
-          <Text
-            selectable={true}
-            style={[
-              styles.messageText,
-              role === 'user' ? styles.userMessageText : styles.botMessageText,
-            ]}>
-            {mainContent}
-          </Text>
-        )}
+        {renderContent()}
       </TouchableOpacity>
       <Text style={[styles.timeText, role === 'user' ? styles.userTimeText : styles.botTimeText]}>
         {new Date().toLocaleTimeString([], {
@@ -126,7 +377,7 @@ export const MessageComponent: React.FC<MessageComponentProps> = ({ message, rol
   );
 };
 
-export const styles = StyleSheet.create({
+const styles = StyleSheet.create({
   messageContainer: {
     maxWidth: '85%',
     marginVertical: 8,
@@ -192,7 +443,41 @@ export const styles = StyleSheet.create({
   },
   botTimeText: {
     color: '#666',
-  }
+  },
+  codeBlockContainer: {
+    marginVertical: 8,
+    borderRadius: 8,
+    overflow: 'hidden',
+    backgroundColor: '#1e1e1e',
+  },
+  codeBlockHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 8,
+    backgroundColor: '#333',
+  },
+  languageText: {
+    color: '#fff',
+    fontSize: 12,
+  },
+  copyButton: {
+    backgroundColor: '#444',
+    padding: 4,
+    borderRadius: 4,
+  },
+  copyButtonText: {
+    color: '#fff',
+    fontSize: 12,
+  },
+  codeBlock: {
+    padding: 12,
+  },
+  codeText: {
+    color: '#fff',
+    fontFamily: 'monospace',
+    fontSize: 14,
+  },
 });
 // import React, { useState } from 'react';
 // import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';

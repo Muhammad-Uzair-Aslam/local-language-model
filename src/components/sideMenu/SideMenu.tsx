@@ -70,9 +70,9 @@ const SideMenu: React.FC<SideMenuProps> = ({
         { text: 'Logout', onPress: async () => {
             try {
                 await signOut(auth);
-                logout(); // From useUser context
+                logout(); 
                 GoogleSignin.signOut()
-                onClose(); // Close SideMenu// Close the menu
+                onClose(); 
             } catch (error) {
               console.error('Logout Error:', error);
             }
@@ -86,8 +86,6 @@ const SideMenu: React.FC<SideMenuProps> = ({
   const menuItems = [
     {name: 'Home', icon: 'home-outline'},
     {name: 'Settings', icon: 'settings-outline'},
-    {name: 'Profile', icon: 'person-outline'},
-    {name: 'About', icon: 'information-circle-outline'},
     {name: 'Logout', icon: 'log-out-outline'}, // Added Logout
   ];
 
