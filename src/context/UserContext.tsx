@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState } from 'react';
 
 interface UserContextProps {
-  userInfo: any; // Use your specific type instead of any if possible
+  userInfo: any; 
   setUserInfo: (user: any) => void;
   logout: () => void;
 }
