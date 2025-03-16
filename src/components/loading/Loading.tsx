@@ -3,9 +3,10 @@ import { View, Text, StyleSheet } from 'react-native';
 import LottieView from 'lottie-react-native';
 interface LoadingScreenProps {
   progress: number;
+  message?:string
 }
 
-export const LoadingScreen: React.FC<LoadingScreenProps> = ({ progress }) => (
+export const LoadingScreen: React.FC<LoadingScreenProps> = ({ progress,message }) => (
     <View style={styles.loadingContainer}>
     <LottieView
       source={require('../../assets/animation/animation2.json')}

@@ -3,7 +3,9 @@ import * as RNFS from '@dr.pogodin/react-native-fs';
 import { initLlama, LlamaContext } from 'llama.rn';
 import { Alert } from 'react-native';
 
-const modelUrl = 'https://huggingface.co/talhabytheway/DeepSeek-R1-Distill-Qwen-1.5B-Q4_K_M-GGUF/resolve/main/deepseek-r1-distill-qwen-1.5b-q4_k_m.gguf?download=true';
+const modelUrl =
+  'https://huggingface.co/talhabytheway/DeepSeek-R1-Distill-Qwen-1.5B-Q4_K_M-GGUF/resolve/main/deepseek-r1-distill-qwen-1.5b-q4_k_m.gguf?download=true';
+
 const modelPath = `${RNFS.DocumentDirectoryPath}/deepseek-r1-distill-qwen-1.5b-q4_k_m.gguf`;
 
 interface ModelState {
@@ -12,6 +14,18 @@ interface ModelState {
   progress: number;
   model: LlamaContext | null;
 }
+
+const getContentLength = async (url: string): Promise<number> => {
+  const response = await fetch(url, { method: 'HEAD' });
+  if (!response.ok) {
+    throw new Error(`HEAD request failed with status ${response.status}`);
+  }
+  const contentLength = response.headers.get('Content-Length');
+  if (!contentLength) {
+    throw new Error('Content-Length header missing');
+  }
+  return parseInt(contentLength, 10);
+};
 
 export const useModel = () => {
   const [state, setState] = useState<ModelState>({
@@ -24,7 +38,7 @@ export const useModel = () => {
   useEffect(() => {
     let mounted = true;
 
-    const loadLlamaModel = async ({ _modelPath }: { _modelPath: string }): Promise<LlamaContext> => {
+    const loadLlamaModel = async (_modelPath: string): Promise<LlamaContext> => {
       try {
         const context = await initLlama({
           model: _modelPath,
@@ -41,30 +55,62 @@ export const useModel = () => {
 
     const downloadModel = async () => {
       try {
-        const fileExists = await RNFS.exists(modelPath);
+        let fileExists = await RNFS.exists(modelPath);
+        if (fileExists) {
+          try {
+            const remoteContentLength = await getContentLength(modelUrl);
+            const localFileInfo = await RNFS.stat(modelPath);
+            if (localFileInfo.size === remoteContentLength) {
+              if (mounted) setState(prev => ({ ...prev, isDownloaded: true }));
+              return;
+            } else {
+              await RNFS.unlink(modelPath);
+              fileExists = false;
+            }
+          } catch (error) {
+            console.error('Error verifying file:', error);
+            await RNFS.unlink(modelPath);
+            fileExists = false;
+          }
+        }
+
         if (!fileExists) {
-          await RNFS.downloadFile({
+          const downloadTask = RNFS.downloadFile({
             fromUrl: modelUrl,
             toFile: modelPath,
             progress: res => {
-              const P = (res.bytesWritten / res.contentLength) * 100;
-              if (mounted) setState(prev => ({ ...prev, progress: P }));
+              const percentage = (res.bytesWritten / res.contentLength) * 100;
+              if (mounted) setState(prev => ({ ...prev, progress: percentage }));
             },
-          }).promise;
+          });
+
+          const downloadResult = await downloadTask.promise;
+          if (downloadResult.statusCode === 200) {
+            if (mounted) {
+              setState(prev => ({ ...prev, isDownloaded: true }));
+            }
+          } else {
+            throw new Error(`Download failed with status code ${downloadResult.statusCode}`);
+          }
         }
-        if (mounted) setState(prev => ({ ...prev, isDownloaded: true }));
       } catch (error) {
         console.error('Download error:', error);
         Alert.alert('Error', 'Failed to download model');
+        if (mounted) {
+          setState(prev => ({ ...prev, isDownloaded: false }));
+        }
       }
     };
 
     const loadModel = async () => {
       try {
         const exists = await RNFS.exists(modelPath);
-        if (!exists) return;
-        
-        const llamaModel = await loadLlamaModel({ _modelPath: modelPath });
+        if (!exists) {
+          setState(prev => ({ ...prev, isDownloaded: false }));
+          return;
+        }
+
+        const llamaModel = await loadLlamaModel(modelPath);
         if (mounted) {
           setState(prev => ({
             ...prev,
@@ -74,15 +120,25 @@ export const useModel = () => {
         }
       } catch (error) {
         console.error('Error loading model:', error);
-        Alert.alert('Error', 'Failed to load model');
+        // Delete corrupted file and reset state
+        await RNFS.unlink(modelPath);
+        if (mounted) {
+          setState(prev => ({
+            ...prev,
+            isDownloaded: false,
+            isModelLoaded: false,
+          }));
+        }
+        Alert.alert('Error', 'Failed to load model. The file will be re-downloaded.');
       }
     };
 
     if (!state.isDownloaded) {
       downloadModel();
-    } 
-    else loadModel();
-    
+    } else if (!state.isModelLoaded) {
+      loadModel();
+    }
+
     return () => {
       mounted = false;
     };

@@ -1,7 +1,5 @@
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Alert } from 'react-native';
-import auth from '@react-native-firebase/auth';
 import {
   View,
   Text,
@@ -10,31 +8,31 @@ import {
   StyleSheet,
   GestureResponderEvent,
 } from 'react-native';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import auth from '@react-native-firebase/auth';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { getApp } from '@react-native-firebase/app';
 import LottieView from 'lottie-react-native';
-import { useUser } from '../../context/UserContext';
+import { useAppDispatch, useAppSelector } from '../../hooks/reduxHook';
+import { setLoading, setUser } from '../../store/slices/authSlice';
 
 interface FormProps {
   onLoginPress?: (event: GestureResponderEvent) => void;
   onForgotPasswordPress?: (event: GestureResponderEvent) => void;
   onSignUpPress?: (event: GestureResponderEvent) => void;
-  onAppleLoginPress?: (event: GestureResponderEvent) => void;
 }
 
 const LoginScreen: React.FC<FormProps> = ({
   onLoginPress,
   onForgotPasswordPress,
   onSignUpPress,
-  onAppleLoginPress,
 }) => {
-  const [isLoading, setIsLoading] = useState(false);
-  const { setUserInfo } = useUser(); // Add this line to use the context
-
+  const dispatch = useAppDispatch();
+  const { isLoading } = useAppSelector((state) => state.auth);
 
   const onGoogleLoginPress = async () => {
     try {
-      setIsLoading(true);
+      dispatch(setLoading(true));
       console.log('Checking Google Play Services...');
       await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
 
@@ -54,40 +52,38 @@ const LoginScreen: React.FC<FormProps> = ({
       console.log('Signing in with Firebase...');
       const userCredential = await auth(app).signInWithCredential(googleCredential);
       console.log('User signed in successfully:', userCredential);
-      const user = userCredential.user;
-      setUserInfo({
-        displayName: user.displayName,
-        email: user.email,
-        photoURL: user.photoURL,
-        uid: user.uid
-      });
+      const user = userCredential?.user;
+      dispatch(
+        setUser({
+          email: user.email,
+          name: user.displayName,
+          photoUrl: user.photoURL,
+          uid: user.uid,
+        })
+      );
       return userCredential;
-    } catch (error:any) {
+    } catch (error: any) {
       console.error('Google Sign-In Error:', error);
       Alert.alert('Error', `Google Sign-In failed: ${error.message}`);
     } finally {
-      setIsLoading(false);
+      dispatch(setLoading(false));
     }
   };
-  useEffect(() => {
-    GoogleSignin.configure({
-      webClientId: '978115865811-1m2o145flbp2da3hf8du5kf4t43dt53a.apps.googleusercontent.com', 
-    });
-  }, []);
 
   if (isLoading) {
     return (
       <View style={[styles.container, styles.loaderContainer]}>
         <LottieView
-                source={require('../../assets/animation/lottie.json')} // Add your Lottie JSON file in the project
-                autoPlay
-                loop
-                style={styles.animation}
-              />
+          source={require('../../assets/animation/lottie.json')}
+          autoPlay
+          loop
+          style={styles.animation}
+        />
         <Text style={styles.loaderText}>Signing in with Google...</Text>
       </View>
     );
   }
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Welcome back</Text>
@@ -114,15 +110,14 @@ const LoginScreen: React.FC<FormProps> = ({
         </TouchableOpacity>
       </View>
       <Text style={styles.signUpLabel}>
-        Don't have an account?{' '}
+        Don’t have an account?{' '}
         <Text style={styles.signUpLink} onPress={onSignUpPress}>
           Sign up
         </Text>
       </Text>
       <View style={styles.socialButtonsContainer}>
-      
-        <TouchableOpacity 
-          style={[styles.socialButton, styles.googleButton]} 
+        <TouchableOpacity
+          style={[styles.socialButton, styles.googleButton]}
           onPress={onGoogleLoginPress}
         >
           <FontAwesome name="google" size={18} color="black" />
@@ -155,9 +150,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-  animation:{
-  width:200,
-  height:200
+  animation: {
+    width: 200,
+    height: 200,
   },
   title: {
     textAlign: 'center',
@@ -239,5 +234,3 @@ const styles = StyleSheet.create({
 });
 
 export default LoginScreen;
-
-    
